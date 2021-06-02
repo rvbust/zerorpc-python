@@ -27,7 +27,6 @@ from __future__ import absolute_import
 from builtins import str
 from builtins import range
 
-import msgpack
 import gevent.pool
 import gevent.queue
 import gevent.event
@@ -36,11 +35,15 @@ import gevent.lock
 import logging
 import sys
 
-from . import gevent_zmq as zmq
+from .msgpack_numpy import msgpack_numpy_patch
+patched_msgpack = msgpack_numpy_patch()
+
+#from . import gevent_zmq as zmq
+from zmq import green as zmq
+
 from .exceptions import TimeoutExpired
 from .context import Context
 from .channel_base import ChannelBase
-
 
 if sys.version_info < (2, 7):
     def get_pyzmq_frame_buffer(frame):
@@ -205,12 +208,12 @@ class Event(object):
 
     def pack(self):
         payload = (self._header, self._name, self._args)
-        r = msgpack.Packer(use_bin_type=True).pack(payload)
+        r = patched_msgpack.Packer(use_bin_type=True).pack(payload)
         return r
 
     @staticmethod
     def unpack(blob):
-        unpacker = msgpack.Unpacker(raw=False)
+        unpacker = patched_msgpack.Unpacker(raw=False)
         unpacker.feed(blob)
         unpacked_msg = unpacker.unpack()
 
