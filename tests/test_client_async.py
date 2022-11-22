@@ -25,7 +25,7 @@
 
 from __future__ import print_function
 from __future__ import absolute_import
-from nose.tools import assert_raises
+import pytest
 import gevent
 import sys
 
@@ -53,14 +53,14 @@ def test_client_server_client_timeout_with_async():
     client = zerorpc.Client(timeout=TIME_FACTOR * 2)
     client.connect(endpoint)
 
-    async_result = client.add(1, 4, async=True)
+    async_result = client.add(1, 4, async_=True)
 
     if sys.version_info < (2, 7):
         def _do_with_assert_raises():
             print(async_result.get())
-        assert_raises(zerorpc.TimeoutExpired, _do_with_assert_raises)
+        pytest.raises(zerorpc.TimeoutExpired, _do_with_assert_raises)
     else:
-        with assert_raises(zerorpc.TimeoutExpired):
+        with pytest.raises(zerorpc.TimeoutExpired):
             print(async_result.get())
     client.close()
     srv.close()
@@ -84,8 +84,8 @@ def test_client_server_with_async():
     client = zerorpc.Client()
     client.connect(endpoint)
 
-    async_result = client.lolita(async=True)
+    async_result = client.lolita(async_=True)
     assert async_result.get() == 42
 
-    async_result = client.add(1, 4, async=True)
+    async_result = client.add(1, 4, async_=True)
     assert async_result.get() == 5
